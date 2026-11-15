@@ -7,9 +7,16 @@ public class LeverController : SwitchController
 
     void Update()
     {
-        if (!playerInRange) return;
-        
-        if(Input.GetKeyDown(KeyCode.E))
+        if (LevelManager.Instance != null &&
+            !LevelManager.Instance.IsPlaying())
+        {
+            return;
+        }
+
+        if (!playerInRange)
+            return;
+
+        if (Input.GetKeyDown(KeyCode.E))
         {
             Toggle();
         }
@@ -18,7 +25,6 @@ public class LeverController : SwitchController
     private void Toggle()
     {
         SetActivated(!GetActivated());
-
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -28,7 +34,6 @@ public class LeverController : SwitchController
             playerInRange = true;
             Debug.Log("Player Here");
         }
-
     }
 
     private void OnTriggerExit2D(Collider2D other)
