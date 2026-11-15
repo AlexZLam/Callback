@@ -19,7 +19,7 @@ public abstract class Callback_Entity : MonoBehaviour
         RestoreState();
     }
 
-    public void ClearCallback()
+    public virtual void ClearCallback()
     {
         hasCallback= false;
     }

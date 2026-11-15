@@ -182,3 +182,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Physics_Callback
   hasCallback: 0
   rb: {fileID: 2224724257292500272}
+  ghostPrefab: {fileID: 8939591798436447837, guid: 197a17edaa9ae5343b21870d84f13119, type: 3}

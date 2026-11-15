@@ -1,21 +1,24 @@
-/*using UnityEngine;
+using UnityEngine;
 
 public class Switch_Callback : Callback_Entity
 {
-    //public SwitchController switchController;
+    public SwitchController switchController;
     public bool saveActivated;
 
-    private void CaptuerState()
+    protected override void CaptureState()
     {
-        // read the switches current active state
+        saveActivated=  switchController.GetActivated();
         // store in saveActivated
     }
 
-    private void RestoreState()
+    protected override void RestoreState()
     {
-        // tell the switch controller to change
-        // set state in saveActivated
+        switchController.SetActivated(saveActivated);
+    }
+
+    private void Awake()
+    {
+        switchController = GetComponent<SwitchController>();
     }
 }
 
-*/
