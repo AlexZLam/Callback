@@ -1,4 +1,5 @@
 
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -19,7 +20,7 @@ public class LevelManager : MonoBehaviour
 
     [Header("Level Settings")]
     public string nextLevelName;
-    public string mainMenuName = "MainMenu";
+    public string mainMenuName = "Main Menu";
     public string gameCompleteSceneName = "GameComplete";
 
     [Header("UI Panels")]
@@ -29,6 +30,8 @@ public class LevelManager : MonoBehaviour
     [Header("Gameplay References")]
     public PlayerMovement playerMovement;
     public Callback_Manager callbackManager;
+
+    private bool restartRequested = false;
 
     private void Awake()
     {
@@ -57,6 +60,15 @@ public class LevelManager : MonoBehaviour
 
     private void Update()
     {
+        
+        if(restartRequested)
+        {
+            restartRequested = false;
+            RestartLevel();
+            return;
+        }
+      
+
         if (currentState == GameState.Playing)
         {
             if (Input.GetKeyDown(KeyCode.R))
@@ -225,5 +237,10 @@ public class LevelManager : MonoBehaviour
     {
         if (Instance == this)
             Instance = null;
+    }
+
+    public void RequestRestart()
+    {
+        restartRequested = true;
     }
 }

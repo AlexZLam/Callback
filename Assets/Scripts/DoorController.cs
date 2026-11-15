@@ -1,5 +1,11 @@
-
 using UnityEngine;
+
+[System.Serializable]
+public class SwitchCondition
+{
+    public SwitchController connectedSwitch;
+    public bool requiredState = true;
+}
 
 public class DoorController : MonoBehaviour
 {
@@ -14,59 +20,108 @@ public class DoorController : MonoBehaviour
     public Sprite openSprite;
     public Sprite closedSprite;
 
-    [Header("Connected Switches")]
-    public SwitchController[] connectedSwitches;
+    [Header("Switch Conditions")]
+    public SwitchCondition[] switchConditions;
 
-    // Initialize the door components.
+    // Preserve existing scene connections as normal (ON) conditions.
+    [SerializeField, HideInInspector] public SwitchController[] connectedSwitches;
+
     private void Awake()
     {
-        doorCollider = GetComponent<BoxCollider2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (doorCollider == null)
+            doorCollider = GetComponent<BoxCollider2D>();
 
-        // Remove any tint from the old implementation.
-        spriteRenderer.color = Color.white;
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.white;
+            spriteRenderer.enabled = true;
+        }
+
+        // Migrate old connections when no new conditions have been configured.
+        if ((switchConditions == null || switchConditions.Length == 0) &&
+            connectedSwitches != null && connectedSwitches.Length > 0)
+        {
+            switchConditions = new SwitchCondition[connectedSwitches.Length];
+
+            for (int i = 0; i < connectedSwitches.Length; i++)
+            {
+                switchConditions[i] = new SwitchCondition
+                {
+                    connectedSwitch = connectedSwitches[i],
+                    requiredState = true
+                };
+            }
+        }
 
         setOpen(isOpen);
     }
 
+    private void OnEnable()
+    {
+        if (switchConditions != null)
+        {
+            foreach (SwitchCondition condition in switchConditions)
+            {
+                if (condition != null && condition.connectedSwitch != null)
+                    condition.connectedSwitch.RegisterDoor(this);
+            }
+        }
+
+        UpdateDoorState();
+    }
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
         UpdateDoorState();
     }
 
-    // Opens or closes the door.
+    private void OnDisable()
+    {
+        if (switchConditions == null)
+            return;
+
+        foreach (SwitchCondition condition in switchConditions)
+        {
+            if (condition != null && condition.connectedSwitch != null)
+                condition.connectedSwitch.UnregisterDoor(this);
+        }
+    }
+
+    // Opens or closes the door and updates its sprite and collision.
     public void setOpen(bool open)
     {
         isOpen = open;
 
-        // Disable collision when the door is open.
-        doorCollider.enabled = !isOpen;
+        if (doorCollider != null)
+            doorCollider.enabled = !isOpen;
 
-        // Update the door sprite based on its state.
-        if (isOpen)
+        if (spriteRenderer != null)
         {
-            spriteRenderer.sprite = openSprite;
-        }
-        else
-        {
-            spriteRenderer.sprite = closedSprite;
+            spriteRenderer.enabled = true;
+            Sprite stateSprite = isOpen ? openSprite : closedSprite;
+
+            if (stateSprite != null)
+                spriteRenderer.sprite = stateSprite;
         }
     }
 
-    // Checks whether all connected switches are activated.
+    // Opens only when every connected switch matches its required state.
     public void UpdateDoorState()
     {
-        if (connectedSwitches == null ||
-            connectedSwitches.Length == 0)
+        if (switchConditions == null || switchConditions.Length == 0)
         {
             setOpen(false);
             return;
         }
 
-        for (int i = 0; i < connectedSwitches.Length; i++)
+        foreach (SwitchCondition condition in switchConditions)
         {
-            if (connectedSwitches[i] == null ||
-                !connectedSwitches[i].GetActivated())
+            if (condition == null || condition.connectedSwitch == null ||
+                condition.connectedSwitch.GetActivated() != condition.requiredState)
             {
                 setOpen(false);
                 return;
@@ -76,7 +131,6 @@ public class DoorController : MonoBehaviour
         setOpen(true);
     }
 
-    // Returns the current state of the door.
     public bool GetIsOpen()
     {
         return isOpen;
