@@ -10,7 +10,7 @@ public class MenuManager : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1.0f;
-        // call showMainMenu
+        ShowMainMenu();
     }
 
     public void PlayGame()
@@ -35,10 +35,12 @@ public class MenuManager : MonoBehaviour
     {
         Time.timeScale = 1.0f;
         SceneManager.LoadScene(levelName);
+        Debug.Log("Loaded" + levelName);
     }
     
     public void QuitGame()
     {
        Application.Quit();
     }
+
 }
